@@ -9,56 +9,120 @@
 <link rel="apple-touch-icon" href="icon-192.png">
 <title>Jadwal ODOS</title>
 <link rel="stylesheet" href="style.css">
+<style>
+header{display:flex;align-items:center;justify-content:space-between;gap:8px}
+header h1{margin:0;font-size:20px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#btnHome{background:#ffffff33;color:#fff;border:0;padding:8px 12px}
+.sub{padding:6px 12px 0;background:var(--biru)}
+.card{background:#fff;border:1px solid #ccc;border-radius:8px;padding:12px;margin:10px 0}
+.card.klik{cursor:pointer}
+.card b{font-size:17px}
+.muted{color:#666;font-size:14px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row>button{flex:1}
+.code{font-size:26px;font-weight:700;letter-spacing:4px;color:var(--biru)}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#222;color:#fff;padding:10px 16px;border-radius:20px;font-size:14px;z-index:20;max-width:90%;display:none}
+.badge{display:inline-block;background:var(--kuning);border:1px solid #e0c35f;border-radius:10px;padding:1px 8px;font-size:12px;margin-left:6px}
+th.me{background:#c55a11}
+td.me{box-shadow:inset 0 0 0 2px #c55a11}
+td.bagian.lock{cursor:default}
+.warn{background:#fdecea;border:1px solid #e5a5a0;border-radius:6px;padding:8px;font-size:14px}
+.err{color:#b00;font-size:14px;margin:6px 0}
+.loading{opacity:.6;pointer-events:none}
+</style>
 </head>
 <body>
 <header>
-  <h1>Jadwal ODOS</h1>
-  <nav>
-    <button data-tab="jadwal" class="tab active">Jadwal</button>
-    <button data-tab="ringkasan" class="tab">Ringkasan</button>
-    <button data-tab="atur" class="tab">Pengaturan</button>
-  </nav>
+  <h1 id="judul">Jadwal ODOS</h1>
+  <button id="btnHome" class="hidden">Grup saya</button>
 </header>
 
 <main>
-  <section id="atur" class="panel">
-    <h2>Pengaturan peserta</h2>
+  <!-- BERANDA -->
+  <section id="vHome" class="panel hidden">
+    <h2>Grup saya</h2>
+    <div id="daftarGrup"></div>
+    <div class="row">
+      <button id="goGabung" class="primary">Gabung grup</button>
+      <button id="goBuat" class="primary">Buat grup baru</button>
+    </div>
+    <p class="hint">Gabung memakai kode 6 huruf dari admin grup. Setiap grup punya jadwal dan progres sendiri.</p>
+  </section>
+
+  <!-- BUAT GRUP -->
+  <section id="vBuat" class="panel hidden">
+    <h2>Buat grup baru</h2>
+    <label>Nama grup<input type="text" id="bNama" maxlength="60" placeholder="contoh: ODOS Kantor Group 1"></label>
     <label>Jumlah peserta
-      <select id="jumlah">
-        <option value="8">8 orang</option>
-        <option value="10">10 orang</option>
-      </select>
+      <select id="bJumlah"><option value="8">8 orang</option><option value="10">10 orang</option></select>
     </label>
-    <label>Tanggal mulai Periode 1
-      <input type="date" id="mulai">
-    </label>
-    <div id="namaBox"></div>
-    <button id="simpan" class="primary">Simpan &amp; lihat jadwal</button>
-    <p class="hint">Satu juz dibagi sesuai jumlah peserta dan bergeser satu bagian setiap periode (30 hari). Setelah 8 atau 10 periode, tiap orang sudah membaca seluruh bagian (1 khatam).</p>
-    <button id="reset" class="danger">Hapus semua data</button>
+    <label>Tanggal mulai Periode 1<input type="date" id="bMulai"></label>
+    <div id="bNamaBox"></div>
+    <label>PIN admin (minimal 4 karakter, untuk mengubah grup)<input type="password" id="bPin" autocomplete="new-password"></label>
+    <div id="bErr" class="err"></div>
+    <button id="bSimpan" class="primary">Buat grup</button>
+    <button id="bBatal">Batal</button>
   </section>
 
-  <section id="jadwal" class="panel hidden">
-    <div class="bar">
-      <label>Periode
-        <select id="periode"></select>
-      </label>
-      <span id="rentang" class="hint"></span>
-    </div>
-    <div class="wrap"><table id="tabel"></table></div>
-    <div class="bar">
-      <button id="hariIni">Ke hari ini</button>
-      <button id="csv">Ekspor Excel (CSV)</button>
-      <button id="pdf">Cetak / PDF</button>
-    </div>
-    <p class="hint">Ketuk sebuah bagian untuk menandai sudah dibaca.</p>
+  <!-- GABUNG -->
+  <section id="vGabung" class="panel hidden">
+    <h2>Gabung grup</h2>
+    <label>Kode grup<input type="text" id="gKode" maxlength="10" placeholder="6 huruf/angka" autocapitalize="characters"></label>
+    <button id="gCari" class="primary">Cari grup</button>
+    <div id="gHasil"></div>
+    <div id="gErr" class="err"></div>
+    <button id="gBatal">Batal</button>
   </section>
 
-  <section id="ringkasan" class="panel hidden">
-    <h2>Progres periode ini</h2>
-    <div id="prog"></div>
+  <!-- GRUP -->
+  <section id="vGrup" class="panel hidden">
+    <nav style="margin-bottom:8px">
+      <button data-gt="jadwal" class="tab gt active" style="background:#ddd;color:#333">Jadwal</button>
+      <button data-gt="ringkasan" class="tab gt" style="background:#ddd;color:#333">Ringkasan</button>
+      <button data-gt="info" class="tab gt" style="background:#ddd;color:#333">Grup</button>
+    </nav>
+
+    <div id="gtJadwal">
+      <div class="bar">
+        <label>Periode<select id="periode"></select></label>
+        <button id="btnRefresh">Muat ulang</button>
+        <span id="rentang" class="hint"></span>
+      </div>
+      <div class="wrap"><table id="tabel"></table></div>
+      <div class="bar">
+        <button id="hariIni">Ke hari ini</button>
+        <button id="csv">Ekspor Excel (CSV)</button>
+        <button id="pdf">Cetak / PDF</button>
+      </div>
+      <p class="hint" id="hintJadwal"></p>
+    </div>
+
+    <div id="gtRingkasan" class="hidden">
+      <div id="prog"></div>
+    </div>
+
+    <div id="gtInfo" class="hidden">
+      <div class="card">
+        <div class="muted">Kode grup</div>
+        <div class="code" id="iKode"></div>
+        <div class="row" style="margin-top:8px">
+          <button id="iSalin">Salin tautan</button>
+          <button id="iWA">Bagikan ke WhatsApp</button>
+        </div>
+      </div>
+      <div class="card">
+        <b>Saya adalah</b>
+        <select id="iSaya"></select>
+        <p class="hint">Hanya kolom Anda yang bisa dicentang. Admin bisa mencentang semua kolom.</p>
+      </div>
+      <div class="card" id="iAdminBox"></div>
+      <div class="card">
+        <button id="iKeluar" class="danger" style="margin:0">Keluar dari grup (di HP ini)</button>
+      </div>
+    </div>
   </section>
 </main>
+<div id="toast" class="toast"></div>
 
 <script>
 window.ODOS_DATA={"8": {"1": ["Al-Fatihah (penuh), Al-Baqarah 1-12", "Al-Baqarah 13-31", "Al-Baqarah 32-56", "Al-Baqarah 57-73", "Al-Baqarah 74-89", "Al-Baqarah 90-104", "Al-Baqarah 105-122", "Al-Baqarah 123-141"], "2": ["Al-Baqarah 142-158", "Al-Baqarah 159-176", "Al-Baqarah 177-187", "Al-Baqarah 188-202", "Al-Baqarah 203-217", "Al-Baqarah 218-230", "Al-Baqarah 231-241", "Al-Baqarah 242-252"], "3": ["Al-Baqarah 253-261", "Al-Baqarah 262-274", "Al-Baqarah 275-284", "Al-Baqarah 285-286, Ali Imran 1-16", "Ali Imran 17-35", "Ali Imran 36-53", "Ali Imran 54-74", "Ali Imran 75-92"], "4": ["Ali Imran 93-112", "Ali Imran 113-133", "Ali Imran 134-151", "Ali Imran 152-166", "Ali Imran 167-183", "Ali Imran 184-200", "An-Nisa 1-12", "An-Nisa 13-23"], "5": ["An-Nisa 24-35", "An-Nisa 36-51", "An-Nisa 52-70", "An-Nisa 71-86", "An-Nisa 87-97", "An-Nisa 98-113", "An-Nisa 114-130", "An-Nisa 131-147"], "6": ["An-Nisa 148-165", "An-Nisa 166-176, Al-Maidah 1-2", "Al-Maidah 3-11", "Al-Maidah 12-22", "Al-Maidah 23-39", "Al-Maidah 40-48", "Al-Maidah 49-66", "Al-Maidah 67-81"], "7": ["Al-Maidah 82-97", "Al-Maidah 98-111", "Al-Maidah 112-120, Al-An'am 1-11", "Al-An'am 12-34", "Al-An'am 35-55", "Al-An'am 56-73", "Al-An'am 74-92", "Al-An'am 93-110"], "8": ["Al-An'am 111-128", "Al-An'am 129-142", "Al-An'am 143-154", "Al-An'am 155-165, Al-A'raf 1-11", "Al-A'raf 12-34", "Al-A'raf 35-51", "Al-A'raf 52-70", "Al-A'raf 71-87"], "9": ["Al-A'raf 88-112", "Al-A'raf 113-137", "Al-A'raf 138-152", "Al-A'raf 153-163", "Al-A'raf 164-183", "Al-A'raf 184-206", "Al-Anfal 1-20", "Al-Anfal 21-40"], "10": ["Al-Anfal 41-57", "Al-Anfal 58-75", "At-Taubah 1-17", "At-Taubah 18-31", "At-Taubah 32-43", "At-Taubah 44-60", "At-Taubah 61-74", "At-Taubah 75-92"], "11": ["At-Taubah 93-108", "At-Taubah 109-121", "At-Taubah 122-129, Yunus 1-10", "Yunus 11-24", "Yunus 25-46", "Yunus 47-70", "Yunus 71-92", "Yunus 93-109, Hud 1-5"], "12": ["Hud 6-24", "Hud 25-45", "Hud 46-66", "Hud 67-88", "Hud 89-113", "Hud 114-123, Yusuf 1-14", "Yusuf 15-33", "Yusuf 34-52"], "13": ["Yusuf 53-75", "Yusuf 76-95", "Yusuf 96-111, Ar-Ra'd 1-3", "Ar-Ra'd 4-18", "Ar-Ra'd 19-37", "Ar-Ra'd 38-43, Ibrahim 1-10", "Ibrahim 11-29", "Ibrahim 30-52"], "14": ["Al-Hijr 1-41", "Al-Hijr 42-90", "Al-Hijr 91-99, An-Nahl 1-22", "An-Nahl 23-42", "An-Nahl 43-69", "An-Nahl 70-87", "An-Nahl 88-106", "An-Nahl 107-128"], "15": ["Al-Isra 1-22", "Al-Isra 23-49", "Al-Isra 50-70", "Al-Isra 71-96", "Al-Isra 97-111, Al-Kahf 1-10", "Al-Kahf 11-27", "Al-Kahf 28-49", "Al-Kahf 50-74"], "16": ["Al-Kahf 75-104", "Al-Kahf 105-110, Maryam 1-25", "Maryam 26-58", "Maryam 59-95", "Maryam 96-98, Thaha 1-42", "Thaha 43-76", "Thaha 77-107", "Thaha 108-135"], "17": ["Al-Anbiya 1-30", "Al-Anbiya 31-57", "Al-Anbiya 58-86", "Al-Anbiya 87-112", "Al-Hajj 1-18", "Al-Hajj 19-38", "Al-Hajj 39-60", "Al-Hajj 61-78"], "18": ["Al-Mu'minun 1-33", "Al-Mu'minun 34-74", "Al-Mu'minun 75-111", "Al-Mu'minun 112-118, An-Nur 1-20", "An-Nur 21-33", "An-Nur 34-53", "An-Nur 54-63", "An-Nur 64, Al-Furqan 1-20"], "19": ["Al-Furqan 21-49", "Al-Furqan 50-77", "Asy-Syu'ara 1-48", "Asy-Syu'ara 49-111", "Asy-Syu'ara 112-171", "Asy-Syu'ara 172-227", "An-Naml 1-28", "An-Naml 29-55"], "20": ["An-Naml 56-83", "An-Naml 84-93, Al-Qashash 1-13", "Al-Qashash 14-31", "Al-Qashash 32-50", "Al-Qashash 51-74", "Al-Qashash 75-88, Al-'Ankabut 1-6", "Al-'Ankabut 7-26", "Al-'Ankabut 27-45"], "21": ["Al-'Ankabut 46-67", "Al-'Ankabut 68-69, Ar-Rum 1-24", "Ar-Rum 25-46", "Ar-Rum 47-60, Luqman 1-11", "Luqman 12-32", "Luqman 33-34, As-Sajdah 1-20", "As-Sajdah 21-30, Al-Ahzab 1-10", "Al-Ahzab 11-30"], "22": ["Al-Ahzab 31-49", "Al-Ahzab 50-62", "Al-Ahzab 63-73, Saba' 1-11", "Saba' 12-31", "Saba' 32-54", "Fathir 1-18", "Fathir 19-41", "Fathir 42-45, Yasin 1-27"], "23": ["Yasin 28-64", "Yasin 65-83, Ash-Shaffat 1-24", "Ash-Shaffat 25-92", "Ash-Shaffat 93-153", "Ash-Shaffat 154-182, Shad 1-23", "Shad 24-61", "Shad 62-88, Az-Zumar 1-7", "Az-Zumar 8-31"], "24": ["Az-Zumar 32-52", "Az-Zumar 53-74", "Az-Zumar 75, Ghafir 1-21", "Ghafir 22-40", "Ghafir 41-62", "Ghafir 63-85", "Fushshilat 1-24", "Fushshilat 25-46"], "25": ["Fushshilat 47-54, Asy-Syura 1-13", "Asy-Syura 14-33", "Asy-Syura 34-53, Az-Zukhruf 1-7", "Az-Zukhruf 8-36", "Az-Zukhruf 37-70", "Az-Zukhruf 71-89, Ad-Dukhan 1-27", "Ad-Dukhan 28-59, Al-Jatsiyah 1-12", "Al-Jatsiyah 13-37"], "26": ["Al-Ahqaf 1-20", "Al-Ahqaf 21-35, Muhammad 1-3", "Muhammad 4-27", "Muhammad 28-38, Al-Fath 1-10", "Al-Fath 11-26", "Al-Fath 27-29, Al-Hujurat 1-12", "Al-Hujurat 13-18, Qaf 1-26", "Qaf 27-45, Adz-Dzariyat 1-30"], "27": ["Adz-Dzariyat 31-60, Ath-Thur 1-21", "Ath-Thur 22-49, An-Najm 1-26", "An-Najm 27-62, Al-Qamar 1-16", "Al-Qamar 17-55, Ar-Rahman 1-16", "Ar-Rahman 17-78, Al-Waqi'ah 1", "Al-Waqi'ah 2-76", "Al-Waqi'ah 77-96, Al-Hadid 1-14", "Al-Hadid 15-29"], "28": ["Al-Mujadilah 1-15", "Al-Mujadilah 16-22, Al-Hasyr 1-9", "Al-Hasyr 10-24, Al-Mumtahanah 1-2", "Al-Mumtahanah 3-13, Ash-Shaff 1-5", "Ash-Shaff 6-14, Al-Jumu'ah (penuh)", "Al-Munafiqun (penuh), At-Taghabun 1-9", "At-Taghabun 10-18, Ath-Thalaq 1-9", "Ath-Thalaq 10-12, At-Tahrim (penuh)"], "29": ["Al-Mulk (penuh), Al-Qalam 1-2", "Al-Qalam 3-52, Al-Haqqah 1-8", "Al-Haqqah 9-52, Al-Ma'arij 1-27", "Al-Ma'arij 28-44, Nuh (penuh)", "Al-Jinn (penuh), Al-Muzzammil 1-11", "Al-Muzzammil 12-20, Al-Muddatstsir 1-47", "Al-Muddatstsir 48-56, Al-Qiyamah (penuh), Al-Insan 1-15", "Al-Insan 16-31, Al-Mursalat (penuh)"], "30": ["An-Naba' (penuh), An-Nazi'at 1-43", "An-Nazi'at 44-46, 'Abasa (penuh), At-Takwir (penuh), Al-Infithar (penuh), Al-Muthaffifin 1", "Al-Muthaffifin 2-36, Al-Insyiqaq (penuh), Al-Buruj 1-11", "Al-Buruj 12-22, Ath-Thariq (penuh), Al-A'la (penuh), Al-Ghasyiyah (penuh), Al-Fajr 1-14", "Al-Fajr 15-30, Al-Balad (penuh), Asy-Syams (penuh), Al-Lail (penuh), Adh-Dhuha 1-3", "Adh-Dhuha 4-11, Al-Insyirah (penuh), At-Tin (penuh), Al-'Alaq (penuh), Al-Qadr (penuh), Al-Bayyinah (penuh), Az-Zalzalah 1", "Az-Zalzalah 2-8, Al-'Adiyat (penuh), Al-Qari'ah (penuh), At-Takatsur (penuh), Al-'Ashr (penuh), Al-Humazah (penuh), Al-Fil (penuh), Quraisy 1-2", "Quraisy 3-4, Al-Ma'un (penuh), Al-Kautsar (penuh), Al-Kafirun (penuh), An-Nashr (penuh), Al-Lahab (penuh), Al-Ikhlas (penuh), Al-Falaq (penuh), An-Nas (penuh)"]}, "10": {"1": ["Al-Fatihah (penuh), Al-Baqarah 1-6", "Al-Baqarah 7-25", "Al-Baqarah 26-40", "Al-Baqarah 41-59", "Al-Baqarah 60-73", "Al-Baqarah 74-85", "Al-Baqarah 86-98", "Al-Baqarah 99-110", "Al-Baqarah 111-125", "Al-Baqarah 126-141"], "2": ["Al-Baqarah 142-153", "Al-Baqarah 154-169", "Al-Baqarah 170-181", "Al-Baqarah 182-190", "Al-Baqarah 191-202", "Al-Baqarah 203-215", "Al-Baqarah 216-224", "Al-Baqarah 225-233", "Al-Baqarah 234-245", "Al-Baqarah 246-252"], "3": ["Al-Baqarah 253-259", "Al-Baqarah 260-269", "Al-Baqarah 270-281", "Al-Baqarah 282-286, Ali Imran 1-2", "Ali Imran 3-16", "Ali Imran 17-29", "Ali Imran 30-46", "Ali Imran 47-62", "Ali Imran 63-77", "Ali Imran 78-92"], "4": ["Ali Imran 93-109", "Ali Imran 110-122", "Ali Imran 123-141", "Ali Imran 142-153", "Ali Imran 154-166", "Ali Imran 167-180", "Ali Imran 181-194", "Ali Imran 195-200, An-Nisa 1-6", "An-Nisa 7-14", "An-Nisa 15-23"], "5": ["An-Nisa 24-33", "An-Nisa 34-44", "An-Nisa 45-59", "An-Nisa 60-74", "An-Nisa 75-86", "An-Nisa 87-94", "An-Nisa 95-105", "An-Nisa 106-121", "An-Nisa 122-134", "An-Nisa 135-147"], "6": ["An-Nisa 148-162", "An-Nisa 163-175", "An-Nisa 176, Al-Maidah 1-5", "Al-Maidah 6-13", "Al-Maidah 14-22", "Al-Maidah 23-35", "Al-Maidah 36-44", "Al-Maidah 45-55", "Al-Maidah 56-68", "Al-Maidah 69-81"], "7": ["Al-Maidah 82-94", "Al-Maidah 95-107", "Al-Maidah 108-118", "Al-Maidah 119-120, Al-An'am 1-16", "Al-An'am 17-34", "Al-An'am 35-51", "Al-An'am 52-68", "Al-An'am 69-81", "Al-An'am 82-94", "Al-An'am 95-110"], "8": ["Al-An'am 111-124", "Al-An'am 125-137", "Al-An'am 138-146", "Al-An'am 147-157", "Al-An'am 158-165, Al-A'raf 1-11", "Al-A'raf 12-30", "Al-A'raf 31-43", "Al-A'raf 44-57", "Al-A'raf 58-73", "Al-A'raf 74-87"], "9": ["Al-A'raf 88-104", "Al-A'raf 105-130", "Al-A'raf 131-143", "Al-A'raf 144-155", "Al-A'raf 156-163", "Al-A'raf 164-178", "Al-A'raf 179-195", "Al-A'raf 196-206, Al-Anfal 1-8", "Al-Anfal 9-25", "Al-Anfal 26-40"], "10": ["Al-Anfal 41-52", "Al-Anfal 53-69", "Al-Anfal 70-75, At-Taubah 1-6", "At-Taubah 7-20", "At-Taubah 21-31", "At-Taubah 32-40", "At-Taubah 41-53", "At-Taubah 54-67", "At-Taubah 68-78", "At-Taubah 79-92"], "11": ["At-Taubah 93-105", "At-Taubah 106-116", "At-Taubah 117-128", "At-Taubah 129, Yunus 1-13", "Yunus 14-24", "Yunus 25-41", "Yunus 42-61", "Yunus 62-78", "Yunus 79-97", "Yunus 98-109, Hud 1-5"], "12": ["Hud 6-19", "Hud 20-37", "Hud 38-53", "Hud 54-71", "Hud 72-88", "Hud 89-108", "Hud 109-123, Yusuf 1-4", "Yusuf 5-22", "Yusuf 23-37", "Yusuf 38-52"], "13": ["Yusuf 53-69", "Yusuf 70-86", "Yusuf 87-103", "Yusuf 104-111, Ar-Ra'd 1-5", "Ar-Ra'd 6-18", "Ar-Ra'd 19-34", "Ar-Ra'd 35-43, Ibrahim 1-5", "Ibrahim 6-18", "Ibrahim 19-33", "Ibrahim 34-52"], "14": ["Al-Hijr 1-31", "Al-Hijr 32-70", "Al-Hijr 71-99, An-Nahl 1-6", "An-Nahl 7-26", "An-Nahl 27-42", "An-Nahl 43-64", "An-Nahl 65-79", "An-Nahl 80-93", "An-Nahl 94-110", "An-Nahl 111-128"], "15": ["Al-Isra 1-17", "Al-Isra 18-38", "Al-Isra 39-58", "Al-Isra 59-75", "Al-Isra 76-96", "Al-Isra 97-111, Al-Kahf 1-4", "Al-Kahf 5-20", "Al-Kahf 21-34", "Al-Kahf 35-53", "Al-Kahf 54-74"], "16": ["Al-Kahf 75-97", "Al-Kahf 98-110, Maryam 1-11", "Maryam 12-38", "Maryam 39-64", "Maryam 65-95", "Maryam 96-98, Thaha 1-37", "Thaha 38-64", "Thaha 65-87", "Thaha 88-113", "Thaha 114-135"], "17": ["Al-Anbiya 1-24", "Al-Anbiya 25-44", "Al-Anbiya 45-72", "Al-Anbiya 73-90", "Al-Anbiya 91-112", "Al-Hajj 1-15", "Al-Hajj 16-30", "Al-Hajj 31-46", "Al-Hajj 47-64", "Al-Hajj 65-78"], "18": ["Al-Mu'minun 1-27", "Al-Mu'minun 28-59", "Al-Mu'minun 60-89", "Al-Mu'minun 90-118", "An-Nur 1-20", "An-Nur 21-31", "An-Nur 32-43", "An-Nur 44-58", "An-Nur 59-64, Al-Furqan 1-2", "Al-Furqan 3-20"], "19": ["Al-Furqan 21-43", "Al-Furqan 44-67", "Al-Furqan 68-77, Asy-Syu'ara 1-19", "Asy-Syu'ara 20-60", "Asy-Syu'ara 61-111", "Asy-Syu'ara 112-159", "Asy-Syu'ara 160-206", "Asy-Syu'ara 207-227, An-Naml 1-13", "An-Naml 14-35", "An-Naml 36-55"], "20": ["An-Naml 56-76", "An-Naml 77-93, Al-Qashash 1-5", "Al-Qashash 6-21", "Al-Qashash 22-35", "Al-Qashash 36-50", "Al-Qashash 51-70", "Al-Qashash 71-84", "Al-Qashash 85-88, Al-'Ankabut 1-14", "Al-'Ankabut 15-30", "Al-'Ankabut 31-45"], "21": ["Al-'Ankabut 46-63", "Al-'Ankabut 64-69, Ar-Rum 1-15", "Ar-Rum 16-32", "Ar-Rum 33-50", "Ar-Rum 51-60, Luqman 1-11", "Luqman 12-28", "Luqman 29-34, As-Sajdah 1-11", "As-Sajdah 12-30", "Al-Ahzab 1-15", "Al-Ahzab 16-30"], "22": ["Al-Ahzab 31-43", "Al-Ahzab 44-54", "Al-Ahzab 55-73", "Saba' 1-14", "Saba' 15-31", "Saba' 32-48", "Saba' 49-54, Fathir 1-11", "Fathir 12-30", "Fathir 31-44", "Fathir 45, Yasin 1-27"], "23": ["Yasin 28-54", "Yasin 55-83", "Ash-Shaffat 1-51", "Ash-Shaffat 52-102", "Ash-Shaffat 103-153", "Ash-Shaffat 154-182, Shad 1-16", "Shad 17-42", "Shad 43-83", "Shad 84-88, Az-Zumar 1-10", "Az-Zumar 11-31"], "24": ["Az-Zumar 32-47", "Az-Zumar 48-67", "Az-Zumar 68-75, Ghafir 1-7", "Ghafir 8-25", "Ghafir 26-40", "Ghafir 41-58", "Ghafir 59-77", "Ghafir 78-85, Fushshilat 1-11", "Fushshilat 12-29", "Fushshilat 30-46"], "25": ["Fushshilat 47-54, Asy-Syura 1-10", "Asy-Syura 11-22", "Asy-Syura 23-45", "Asy-Syura 46-53, Az-Zukhruf 1-12", "Az-Zukhruf 13-36", "Az-Zukhruf 37-63", "Az-Zukhruf 64-89, Ad-Dukhan 1-7", "Ad-Dukhan 8-47", "Ad-Dukhan 48-59, Al-Jatsiyah 1-17", "Al-Jatsiyah 18-37"], "26": ["Al-Ahqaf 1-16", "Al-Ahqaf 17-31", "Al-Ahqaf 32-35, Muhammad 1-14", "Muhammad 15-32", "Muhammad 33-38, Al-Fath 1-10", "Al-Fath 11-24", "Al-Fath 25-29, Al-Hujurat 1-6", "Al-Hujurat 7-18, Qaf 1-2", "Qaf 3-35", "Qaf 36-45, Adz-Dzariyat 1-30"], "27": ["Adz-Dzariyat 31-60, Ath-Thur 1-14", "Ath-Thur 15-49", "An-Najm 1-44", "An-Najm 45-62, Al-Qamar 1-27", "Al-Qamar 28-55, Ar-Rahman 1-16", "Ar-Rahman 17-67", "Ar-Rahman 68-78, Al-Waqi'ah 1-50", "Al-Waqi'ah 51-96, Al-Hadid 1-3", "Al-Hadid 4-18", "Al-Hadid 19-29"], "28": ["Al-Mujadilah 1-11", "Al-Mujadilah 12-22, Al-Hasyr 1-3", "Al-Hasyr 4-16", "Al-Hasyr 17-24, Al-Mumtahanah 1-5", "Al-Mumtahanah 6-13, Ash-Shaff 1-5", "Ash-Shaff 6-14, Al-Jumu'ah 1-8", "Al-Jumu'ah 9-11, Al-Munafiqun (penuh)", "At-Taghabun (penuh)", "Ath-Thalaq (penuh)", "At-Tahrim (penuh)"], "29": ["Al-Mulk 1-26", "Al-Mulk 27-30, Al-Qalam 1-42", "Al-Qalam 43-52, Al-Haqqah 1-34", "Al-Haqqah 35-52, Al-Ma'arij 1-39", "Al-Ma'arij 40-44, Nuh (penuh)", "Al-Jinn (penuh)", "Al-Muzzammil (penuh), Al-Muddatstsir 1-17", "Al-Muddatstsir 18-56, Al-Qiyamah 1-19", "Al-Qiyamah 20-40, Al-Insan 1-25", "Al-Insan 26-31, Al-Mursalat (penuh)"], "30": ["An-Naba' (penuh), An-Nazi'at 1-25", "An-Nazi'at 26-46, 'Abasa (penuh), At-Takwir 1-19", "At-Takwir 20-29, Al-Infithar (penuh), Al-Muthaffifin 1-32", "Al-Muthaffifin 33-36, Al-Insyiqaq (penuh), Al-Buruj (penuh), Ath-Thariq 1-6", "Ath-Thariq 7-17, Al-A'la (penuh), Al-Ghasyiyah (penuh), Al-Fajr 1-14", "Al-Fajr 15-30, Al-Balad (penuh), Asy-Syams (penuh), Al-Lail 1-8", "Al-Lail 9-21, Adh-Dhuha (penuh), Al-Insyirah (penuh), At-Tin (penuh), Al-'Alaq (penuh), Al-Qadr 1-2", "Al-Qadr 3-5, Al-Bayyinah (penuh), Az-Zalzalah (penuh), Al-'Adiyat (penuh), Al-Qari'ah 1-6", "Al-Qari'ah 7-11, At-Takatsur (penuh), Al-'Ashr (penuh), Al-Humazah (penuh), Al-Fil (penuh), Quraisy (penuh), Al-Ma'un 1-5", "Al-Ma'un 6-7, Al-Kautsar (penuh), Al-Kafirun (penuh), An-Nashr (penuh), Al-Lahab (penuh), Al-Ikhlas (penuh), Al-Falaq (penuh), An-Nas (penuh)"]}};
@@ -66,145 +130,320 @@ window.ODOS_DATA={"8": {"1": ["Al-Fatihah (penuh), Al-Baqarah 1-12", "Al-Baqarah
 <script>
 (function(){
 'use strict';
-var KEY='odos-pwa-v1';
+// ====== PENGATURAN: tempel URL Web App Apps Script di sini ======
+var API_URL='https://script.google.com/macros/s/AKfycbwMJ-CFn7IjeL2tWdAsjykqE9fUiMW-x0LElSrxG1FrRj8ZbnpmnecOxSsrXoN8yOPH/exec';
+// ================================================================
+var KEY='odos-pwa-v2';
 var $=function(id){return document.getElementById(id)};
-var state=load();
+var BLN=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+var L=load();           // {groups:[{kode,nama,saya,admin,pin,periode}], cache:{kode:data}}
+var cur=null;           // grup aktif (objek lokal)
+var data=null;          // data server grup aktif
+var done={};            // peta key->true
+var timer=null;
 
 function load(){
-  try{var s=JSON.parse(localStorage.getItem(KEY));if(s&&s.names)return s}catch(e){}
-  return null;
+  try{var s=JSON.parse(localStorage.getItem(KEY));if(s&&s.groups)return s}catch(e){}
+  return {groups:[],cache:{}};
 }
-function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(L))}catch(e){}}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 function iso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function parse(s){var a=s.split('-');return new Date(+a[0],+a[1]-1,+a[2])}
 function addDays(d,n){var x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()+n);return x}
-var BLN=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
 function fmt(d){return d.getDate()+' '+BLN[d.getMonth()]+' '+d.getFullYear()}
 function fmtS(d){return d.getDate()+'-'+BLN[d.getMonth()]}
+function huruf(i){return String.fromCharCode(65+i)}
+function toast(m){var t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(function(){t.style.display='none'},2600)}
+function grupLokal(kode){for(var i=0;i<L.groups.length;i++)if(L.groups[i].kode===kode)return L.groups[i];return null}
 
-// ---------- tab ----------
-function show(tab){
-  ['atur','jadwal','ringkasan'].forEach(function(t){$(t).classList.toggle('hidden',t!==tab)});
-  document.querySelectorAll('.tab').forEach(function(b){b.classList.toggle('active',b.dataset.tab===tab)});
-  if(tab==='jadwal')renderJadwal();
-  if(tab==='ringkasan')renderRingkasan();
+// ---------- API ----------
+function api(action,payload){
+  if(!API_URL||API_URL.indexOf('GANTI_')===0)return Promise.reject(new Error('URL Web App belum diisi di index.html (lihat PANDUAN.md).'));
+  return fetch(API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(Object.assign({action:action},payload||{}))})
+    .then(function(r){return r.json()})
+    .then(function(j){if(!j.ok)throw new Error(j.error||'Terjadi kesalahan');return j.data},
+          function(){throw new Error('Tidak bisa terhubung. Periksa internet Anda.')});
 }
-document.querySelectorAll('.tab').forEach(function(b){b.onclick=function(){
-  if(!state&&b.dataset.tab!=='atur'){alert('Isi pengaturan peserta dulu.');return}
-  show(b.dataset.tab)}});
 
-// ---------- pengaturan ----------
-function namaInputs(n,names){
-  var box=$('namaBox');box.innerHTML='';
-  for(var i=0;i<n;i++){
-    var row=document.createElement('div');row.className='namaRow';
-    var lab=document.createElement('span');lab.textContent=String.fromCharCode(65+i);
-    var inp=document.createElement('input');inp.type='text';inp.placeholder='Nama peserta '+(i+1);
-    inp.value=(names&&names[i])||'';inp.dataset.i=i;
-    row.appendChild(lab);row.appendChild(inp);box.appendChild(row);
-  }
+// ---------- tampilan ----------
+var VIEWS=['vHome','vBuat','vGabung','vGrup'];
+function view(v){
+  VIEWS.forEach(function(x){$(x).classList.toggle('hidden',x!==v)});
+  $('btnHome').classList.toggle('hidden',v==='vHome');
+  if(v!=='vGrup'){cur=null;data=null;clearInterval(timer);timer=null;$('judul').textContent='Jadwal ODOS'}
+  window.scrollTo(0,0);
 }
-$('jumlah').onchange=function(){
-  var cur=[].map.call($('namaBox').querySelectorAll('input'),function(x){return x.value});
-  namaInputs(+$('jumlah').value,cur);
+$('btnHome').onclick=home;
+function home(){renderHome();view('vHome')}
+
+// ---------- beranda ----------
+function renderHome(){
+  var h='';
+  if(!L.groups.length)h='<div class="card muted">Belum ada grup. Buat grup baru atau gabung dengan kode dari admin.</div>';
+  L.groups.forEach(function(g){
+    var c=L.cache[g.kode];
+    var saya=(g.saya!=null&&c&&c.names[g.saya])?('Saya: '+esc(c.names[g.saya])):'Belum pilih nama';
+    h+='<div class="card klik" data-k="'+g.kode+'"><b>'+esc(g.nama)+'</b>'+(g.admin?'<span class="badge">admin</span>':'')
+      +'<div class="muted">Kode '+g.kode+(c?' | '+c.n+' peserta':'')+' | '+saya+'</div></div>';
+  });
+  $('daftarGrup').innerHTML=h;
+}
+$('daftarGrup').onclick=function(e){var c=e.target.closest('.card.klik');if(c)bukaGrup(c.dataset.k)};
+$('goBuat').onclick=function(){
+  $('bNama').value='';$('bPin').value='';$('bErr').textContent='';$('bJumlah').value='8';
+  $('bMulai').value=iso(new Date());bNama(8,[]);view('vBuat');
 };
-$('simpan').onclick=function(){
-  var n=+$('jumlah').value;
-  var names=[].map.call($('namaBox').querySelectorAll('input'),function(x,i){return x.value.trim()||String.fromCharCode(65+i)}).slice(0,n);
-  if(!$('mulai').value){alert('Isi tanggal mulai.');return}
-  var old=state&&state.n===n?state.done:{};
-  state={n:n,names:names,start:$('mulai').value,done:old||{},periode:1};
-  save();show('jadwal');
-};
-$('reset').onclick=function(){
-  if(confirm('Hapus semua nama dan tanda baca?')){localStorage.removeItem(KEY);state=null;init()}
+$('goGabung').onclick=function(){$('gKode').value='';$('gHasil').innerHTML='';$('gErr').textContent='';view('vGabung')};
+$('bBatal').onclick=home;$('gBatal').onclick=home;
+
+// ---------- buat grup ----------
+function namaInputs(box,n,names,prefix){
+  var h='';
+  for(var i=0;i<n;i++)h+='<div class="namaRow" style="margin:4px 0"><span>'+huruf(i)+'</span><input type="text" maxlength="40" data-i="'+i+'" placeholder="Nama peserta '+(i+1)+'" value="'+esc((names&&names[i])||'')+'"></div>';
+  box.innerHTML=h;
+}
+function bNama(n,names){namaInputs($('bNamaBox'),n,names)}
+function bacaNama(box){return [].map.call(box.querySelectorAll('input'),function(x){return x.value.trim()})}
+$('bJumlah').onchange=function(){bNama(+$('bJumlah').value,bacaNama($('bNamaBox')))};
+$('bSimpan').onclick=function(){
+  var nama=$('bNama').value.trim(),n=+$('bJumlah').value,mulai=$('bMulai').value,pin=$('bPin').value;
+  $('bErr').textContent='';
+  if(!nama){$('bErr').textContent='Nama grup wajib diisi.';return}
+  if(!mulai){$('bErr').textContent='Isi tanggal mulai.';return}
+  if(pin.length<4){$('bErr').textContent='PIN admin minimal 4 karakter.';return}
+  $('vBuat').classList.add('loading');
+  api('createGroup',{nama:nama,n:n,mulai:mulai,names:bacaNama($('bNamaBox')),pin:pin}).then(function(r){
+    L.groups.push({kode:r.kode,nama:nama,saya:null,admin:true,pin:pin,periode:null});save();
+    $('vBuat').classList.remove('loading');
+    bukaGrup(r.kode,'info');
+  }).catch(function(e){$('vBuat').classList.remove('loading');$('bErr').textContent=e.message});
 };
 
-// ---------- jadwal ----------
-function bagianUntuk(orang,p,juz){ // orang 0..n-1, p 1..n
-  var n=state.n,part=(orang+p-1)%n;
-  return window.ODOS_DATA[String(n)][String(juz)][part];
+// ---------- gabung ----------
+$('gCari').onclick=function(){cariGrup($('gKode').value)};
+function cariGrup(kode){
+  kode=kode.toUpperCase().replace(/[^A-Z0-9]/g,'');
+  $('gErr').textContent='';$('gHasil').innerHTML='';
+  if(!kode){$('gErr').textContent='Isi kode grup.';return}
+  $('vGabung').classList.add('loading');
+  api('getGroup',{kode:kode}).then(function(g){
+    $('vGabung').classList.remove('loading');
+    L.cache[g.kode]=g;
+    var h='<div class="card"><b>'+esc(g.nama)+'</b><div class="muted">'+g.n+' peserta</div><p>Pilih nama Anda:</p>';
+    g.names.forEach(function(nm,i){h+='<button class="pil" data-i="'+i+'" style="display:block;width:100%;margin:4px 0;text-align:left">'+huruf(i)+'. '+esc(nm)+'</button>'});
+    h+='<button class="pil" data-i="-1" style="display:block;width:100%;margin:8px 0 0;text-align:left">Hanya melihat (bukan peserta)</button></div>';
+    $('gHasil').innerHTML=h;
+    $('gHasil').onclick=function(e){
+      var b=e.target.closest('.pil');if(!b)return;
+      var i=+b.dataset.i;
+      if(!grupLokal(g.kode))L.groups.push({kode:g.kode,nama:g.nama,saya:i<0?null:i,admin:false,pin:null,periode:null});
+      else grupLokal(g.kode).saya=i<0?null:i;
+      save();bukaGrup(g.kode);
+    };
+  }).catch(function(e){$('vGabung').classList.remove('loading');$('gErr').textContent=e.message});
 }
-function startP(p){return addDays(parse(state.start),30*(p-1))}
+
+// ---------- grup ----------
+var gtab='jadwal';
+document.querySelectorAll('.gt').forEach(function(b){b.onclick=function(){tabGrup(b.dataset.gt)}});
+function tabGrup(t){
+  gtab=t;
+  document.querySelectorAll('.gt').forEach(function(b){var a=b.dataset.gt===t;b.classList.toggle('active',a);b.style.background=a?'var(--biru)':'#ddd';b.style.color=a?'#fff':'#333'});
+  $('gtJadwal').classList.toggle('hidden',t!=='jadwal');
+  $('gtRingkasan').classList.toggle('hidden',t!=='ringkasan');
+  $('gtInfo').classList.toggle('hidden',t!=='info');
+  if(t==='jadwal')renderJadwal();if(t==='ringkasan')renderRingkasan();if(t==='info')renderInfo();
+}
+function bukaGrup(kode,tab){
+  cur=grupLokal(kode);if(!cur){home();return}
+  data=L.cache[kode]||null;
+  done={};if(data)data.done.forEach(function(k){done[k]=1});
+  view('vGrup');$('judul').textContent=cur.nama;
+  $('periode').innerHTML='';
+  if(data)tabGrup(tab||'jadwal');else{tabGrup(tab||'jadwal');$('tabel').innerHTML='<tr><td>Memuat...</td></tr>'}
+  segarkan(true);
+  clearInterval(timer);timer=setInterval(function(){if(!document.hidden&&cur&&$('vGrup')&&!$('vGrup').classList.contains('hidden'))segarkan(false)},45000);
+}
+function segarkan(tampilkanError){
+  var kode=cur&&cur.kode;if(!kode)return Promise.resolve();
+  return api('getGroup',{kode:kode}).then(function(g){
+    if(!cur||cur.kode!==kode)return;
+    data=g;L.cache[kode]=g;cur.nama=g.nama;save();
+    done={};g.done.forEach(function(k){done[k]=1});
+    $('judul').textContent=g.nama;
+    if(gtab==='jadwal')renderJadwal();else if(gtab==='ringkasan')renderRingkasan();else renderInfo();
+  }).catch(function(e){
+    if(e.message==='Grup tidak ditemukan'){
+      if(confirm('Grup ini sudah dihapus admin. Hapus dari daftar di HP ini?')){L.groups=L.groups.filter(function(g){return g.kode!==kode});delete L.cache[kode];save();home()}
+    }else if(tampilkanError)toast(data?'Offline - menampilkan data terakhir':e.message);
+  });
+}
+$('btnRefresh').onclick=function(){segarkan(true).then(function(){toast('Diperbarui')})};
+
+// jadwal
+function startP(p){return addDays(parse(data.mulai),30*(p-1))}
 function periodeAktif(){
-  var t=new Date(),s=parse(state.start);
+  var t=new Date(),s=parse(data.mulai);
   var diff=Math.floor((new Date(t.getFullYear(),t.getMonth(),t.getDate())-s)/86400000);
-  var p=Math.floor(diff/30)+1;
-  return Math.min(Math.max(p,1),state.n);
+  return Math.min(Math.max(Math.floor(diff/30)+1,1),data.n);
 }
+function bagian(k,p,d){return window.ODOS_DATA[String(data.n)][String(d)][(k+p-1)%data.n]}
+function bolehCentang(k){return cur.admin||(cur.saya!=null&&cur.saya===k)}
 function renderJadwal(){
+  if(!data)return;
   var sel=$('periode');
-  if(!sel.options.length||sel.options.length!==state.n){
-    sel.innerHTML='';
-    for(var p=1;p<=state.n;p++){var o=document.createElement('option');o.value=p;o.textContent='Periode '+p;sel.appendChild(o)}
-    sel.value=state.periode||periodeAktif();
+  if(sel.options.length!==data.n){
+    sel.innerHTML='';for(var q=1;q<=data.n;q++){var o=document.createElement('option');o.value=q;o.textContent='Periode '+q;sel.appendChild(o)}
+    sel.value=cur.periode||periodeAktif();
   }
-  var p=+sel.value;state.periode=p;save();
-  var s=startP(p),e=addDays(s,29);
-  $('rentang').textContent=fmt(s)+' - '+fmt(e);
+  var p=+sel.value;cur.periode=p;save();
+  $('rentang').textContent=fmt(startP(p))+' - '+fmt(addDays(startP(p),29));
   var h='<tr><th class="sticky">Tgl</th><th>Juz</th>';
-  state.names.forEach(function(nm,i){h+='<th>'+String.fromCharCode(65+i)+'<br>'+esc(nm)+'</th>'});
+  data.names.forEach(function(nm,i){h+='<th'+(cur.saya===i?' class="me"':'')+'>'+huruf(i)+'<br>'+esc(nm)+'</th>'});
   h+='</tr>';
   var today=iso(new Date());
   for(var d=1;d<=30;d++){
-    var dt=addDays(s,d-1);
+    var dt=addDays(startP(p),d-1);
     h+='<tr id="r'+d+'"'+(iso(dt)===today?' class="today"':'')+'><td class="sticky">'+fmtS(dt)+'</td><td>'+d+'</td>';
-    for(var k=0;k<state.n;k++){
+    for(var k=0;k<data.n;k++){
       var key=p+'|'+d+'|'+k;
-      h+='<td class="bagian'+(state.done[key]?' done':'')+'" data-k="'+key+'">'+esc(bagianUntuk(k,p,d))+'</td>';
+      h+='<td class="bagian'+(done[key]?' done':'')+(cur.saya===k?' me':'')+(bolehCentang(k)?'':' lock')+'" data-key="'+key+'" data-k="'+k+'">'+esc(bagian(k,p,d))+'</td>';
     }
     h+='</tr>';
   }
   $('tabel').innerHTML=h;
+  $('hintJadwal').textContent=cur.saya!=null?'Ketuk bagian di kolom Anda (bertanda oranye) untuk menandai sudah dibaca.':(cur.admin?'Sebagai admin Anda bisa mencentang semua kolom. Pilih nama Anda di tab Grup bila Anda juga peserta.':'Pilih nama Anda di tab Grup agar bisa mencentang.');
 }
-function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 $('periode').onchange=renderJadwal;
 $('tabel').onclick=function(ev){
   var td=ev.target.closest('td.bagian');if(!td)return;
-  var k=td.dataset.k;
-  if(state.done[k])delete state.done[k];else state.done[k]=1;
-  save();td.classList.toggle('done');
+  var k=+td.dataset.k,key=td.dataset.key;
+  if(!bolehCentang(k)){toast(cur.saya==null?'Pilih nama Anda di tab Grup dulu.':'Anda hanya bisa mencentang kolom Anda sendiri.');return}
+  var nilai=!done[key];
+  if(nilai)done[key]=1;else delete done[key];
+  td.classList.toggle('done',nilai);
+  api('setDone',{kode:cur.kode,key:key,value:nilai}).then(function(){
+    var arr=Object.keys(done);data.done=arr;L.cache[cur.kode]=data;save();
+  }).catch(function(e){
+    if(nilai)delete done[key];else done[key]=1;
+    td.classList.toggle('done',!nilai);toast('Gagal menyimpan: '+e.message);
+  });
 };
 $('hariIni').onclick=function(){
-  var p=periodeAktif();$('periode').value=p;renderJadwal();
+  $('periode').value=periodeAktif();renderJadwal();
   var r=document.querySelector('tr.today');
-  if(r)r.scrollIntoView({block:'center'});else alert('Hari ini di luar rentang periode ini.');
+  if(r)r.scrollIntoView({block:'center'});else toast('Hari ini di luar rentang periode ini.');
 };
 
-// ---------- ringkasan ----------
+// ringkasan
 function renderRingkasan(){
-  var p=state.periode||1,h='<p class="hint">Periode '+p+': '+fmt(startP(p))+' - '+fmt(addDays(startP(p),29))+'</p>';
-  state.names.forEach(function(nm,k){
-    var c=0;for(var d=1;d<=30;d++)if(state.done[p+'|'+d+'|'+k])c++;
-    h+='<div class="p"><b>'+String.fromCharCode(65+k)+'. '+esc(nm)+'</b> - '+c+' / 30 hari'
-      +'<div class="bar2"><i style="width:'+(c/30*100)+'%"></i></div></div>';
+  if(!data)return;
+  var p=cur.periode||periodeAktif();
+  var h='<p class="hint">Periode '+p+': '+fmt(startP(p))+' - '+fmt(addDays(startP(p),29))+'</p>';
+  data.names.forEach(function(nm,k){
+    var c=0,tot=0;
+    for(var d=1;d<=30;d++)if(done[p+'|'+d+'|'+k])c++;
+    for(var q=1;q<=data.n;q++)for(var e=1;e<=30;e++)if(done[q+'|'+e+'|'+k])tot++;
+    h+='<div class="card"><b>'+huruf(k)+'. '+esc(nm)+'</b>'+(cur.saya===k?'<span class="badge">saya</span>':'')
+      +'<div class="muted">Periode ini: '+c+' / 30 hari</div><div class="bar2"><i style="width:'+(c/30*100)+'%"></i></div>'
+      +'<div class="muted" style="margin-top:6px">Seluruh periode: '+tot+' / '+(30*data.n)+' (1 khatam)</div><div class="bar2"><i style="width:'+(tot/(30*data.n)*100)+'%"></i></div></div>';
   });
   $('prog').innerHTML=h;
 }
 
-// ---------- ekspor ----------
+// info + admin
+function tautan(){return location.origin+location.pathname+'?g='+cur.kode}
+function renderInfo(){
+  if(!data)return;
+  $('iKode').textContent=cur.kode;
+  var o='<option value="-1">(Bukan peserta / hanya melihat)</option>';
+  data.names.forEach(function(nm,i){o+='<option value="'+i+'"'+(cur.saya===i?' selected':'')+'>'+huruf(i)+'. '+esc(nm)+'</option>'});
+  $('iSaya').innerHTML=o;
+  renderAdmin();
+}
+$('iSaya').onchange=function(){var v=+$('iSaya').value;cur.saya=v<0?null:v;save();toast('Disimpan')};
+$('iSalin').onclick=function(){
+  var t=tautan();
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(function(){toast('Tautan disalin')},function(){prompt('Salin tautan:',t)});
+  else prompt('Salin tautan:',t);
+};
+$('iWA').onclick=function(){
+  var t='Gabung grup ODOS "'+cur.nama+'". Buka tautan ini lalu pilih nama Anda: '+tautan()+' (kode: '+cur.kode+')';
+  window.open('https://wa.me/?text='+encodeURIComponent(t),'_blank');
+};
+$('iKeluar').onclick=function(){
+  if(!confirm('Keluar dari grup ini di HP ini? Data grup di server tidak dihapus.'))return;
+  var kode=cur.kode;L.groups=L.groups.filter(function(g){return g.kode!==kode});save();home();
+};
+function renderAdmin(){
+  var b=$('iAdminBox');
+  if(!cur.admin){
+    b.innerHTML='<b>Admin</b><p class="hint">Masukkan PIN admin untuk mengubah nama peserta, tanggal mulai, atau menghapus grup.</p>'
+      +'<input type="password" id="aPin" placeholder="PIN admin" autocomplete="off"><div id="aErr" class="err"></div><button id="aMasuk" class="primary">Masuk sebagai admin</button>';
+    $('aMasuk').onclick=function(){
+      var pin=$('aPin').value;
+      api('verifyPin',{kode:cur.kode,pin:pin}).then(function(){cur.admin=true;cur.pin=pin;save();toast('Mode admin aktif');renderInfo()})
+        .catch(function(e){$('aErr').textContent=e.message});
+    };
+    return;
+  }
+  b.innerHTML='<b>Pengaturan admin</b>'
+    +'<label>Nama grup<input type="text" id="eNama" maxlength="60" value="'+esc(data.nama)+'"></label>'
+    +'<label>Jumlah peserta<select id="eJumlah"><option value="8">8 orang</option><option value="10">10 orang</option></select></label>'
+    +'<div id="eWarn" class="warn hidden">Mengubah jumlah peserta menghapus seluruh progres (centang) grup ini dan membagi ulang bagian bacaan.</div>'
+    +'<label>Tanggal mulai Periode 1<input type="date" id="eMulai" value="'+data.mulai+'"></label>'
+    +'<div id="eNamaBox"></div><div id="eErr" class="err"></div>'
+    +'<button id="eSimpan" class="primary">Simpan perubahan</button>'
+    +'<button id="eHapus" class="danger">Hapus grup</button>';
+  $('eJumlah').value=String(data.n);
+  namaInputs($('eNamaBox'),data.n,data.names);
+  $('eJumlah').onchange=function(){
+    var n=+$('eJumlah').value;$('eWarn').classList.toggle('hidden',n===data.n);
+    namaInputs($('eNamaBox'),n,bacaNama($('eNamaBox')));
+  };
+  $('eSimpan').onclick=function(){
+    var n=+$('eJumlah').value;
+    if(n!==data.n&&!confirm('Progres grup akan dihapus. Lanjutkan?'))return;
+    api('updateGroup',{kode:cur.kode,pin:cur.pin,nama:$('eNama').value,n:n,mulai:$('eMulai').value,names:bacaNama($('eNamaBox'))}).then(function(g){
+      data=g;L.cache[cur.kode]=g;cur.nama=g.nama;done={};g.done.forEach(function(k){done[k]=1});
+      if(cur.saya!=null&&cur.saya>=g.n)cur.saya=null;
+      cur.periode=null;$('periode').innerHTML='';save();$('judul').textContent=g.nama;toast('Perubahan disimpan');renderInfo();
+    }).catch(function(e){$('eErr').textContent=e.message;if(/PIN/.test(e.message)){cur.admin=false;cur.pin=null;save()}});
+  };
+  $('eHapus').onclick=function(){
+    if(!confirm('Hapus grup "'+data.nama+'" untuk SEMUA peserta? Tidak bisa dibatalkan.'))return;
+    api('deleteGroup',{kode:cur.kode,pin:cur.pin}).then(function(){
+      var kode=cur.kode;L.groups=L.groups.filter(function(g){return g.kode!==kode});delete L.cache[kode];save();toast('Grup dihapus');home();
+    }).catch(function(e){$('eErr').textContent=e.message});
+  };
+}
+
+// ekspor
 $('csv').onclick=function(){
-  var p=state.periode,s=startP(p),rows=[];
-  rows.push(['Tgl','Juz'].concat(state.names.map(function(n,i){return String.fromCharCode(65+i)+' - '+n})));
+  var p=cur.periode,s=startP(p),rows=[];
+  rows.push(['Tgl','Juz'].concat(data.names.map(function(n,i){return huruf(i)+' - '+n})));
   for(var d=1;d<=30;d++){
     var r=[fmtS(addDays(s,d-1)),d];
-    for(var k=0;k<state.n;k++)r.push(bagianUntuk(k,p,d)+(state.done[p+'|'+d+'|'+k]?' [selesai]':''));
+    for(var k=0;k<data.n;k++)r.push(bagian(k,p,d)+(done[p+'|'+d+'|'+k]?' [selesai]':''));
     rows.push(r);
   }
   var csv='﻿'+rows.map(function(r){return r.map(function(c){return '"'+String(c).replace(/"/g,'""')+'"'}).join(';')}).join('\r\n');
   var a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
-  a.download='Jadwal_ODOS_Periode_'+p+'.csv';document.body.appendChild(a);a.click();a.remove();
+  a.download='Jadwal_ODOS_'+data.nama.replace(/[^\w]+/g,'_')+'_Periode_'+p+'.csv';document.body.appendChild(a);a.click();a.remove();
 };
 $('pdf').onclick=function(){window.print()};
 
 // ---------- mulai ----------
 function init(){
-  var n=state?state.n:8;
-  $('jumlah').value=n;
-  $('mulai').value=state?state.start:iso(new Date());
-  namaInputs(n,state&&state.names);
-  if(state){$('periode').innerHTML='';show('jadwal')}else show('atur');
+  var kodeUrl=(new URLSearchParams(location.search).get('g')||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+  renderHome();
+  if(kodeUrl){
+    if(grupLokal(kodeUrl)){bukaGrup(kodeUrl);return}
+    $('gKode').value=kodeUrl;$('gHasil').innerHTML='';$('gErr').textContent='';view('vGabung');cariGrup(kodeUrl);return;
+  }
+  if(L.groups.length===1)bukaGrup(L.groups[0].kode);else view('vHome');
 }
 init();
 if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(function(){})}
