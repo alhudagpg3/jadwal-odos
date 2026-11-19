@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1F4E78">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Jadwal ODOS</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header>
+  <h1>Jadwal ODOS</h1>
+  <nav>
+    <button data-tab="jadwal" class="tab active">Jadwal</button>
+    <button data-tab="ringkasan" class="tab">Ringkasan</button>
+    <button data-tab="atur" class="tab">Pengaturan</button>
+  </nav>
+</header>
+
+<main>
+  <section id="atur" class="panel">
+    <h2>Pengaturan peserta</h2>
+    <label>Jumlah peserta
+      <select id="jumlah">
+        <option value="8">8 orang</option>
+        <option value="10">10 orang</option>
+      </select>
+    </label>
+    <label>Tanggal mulai Periode 1
+      <input type="date" id="mulai">
+    </label>
+    <div id="namaBox"></div>
+    <button id="simpan" class="primary">Simpan &amp; lihat jadwal</button>
+    <p class="hint">Satu juz dibagi sesuai jumlah peserta dan bergeser satu bagian setiap periode (30 hari). Setelah 8 atau 10 periode, tiap orang sudah membaca seluruh bagian (1 khatam).</p>
+    <button id="reset" class="danger">Hapus semua data</button>
+  </section>
+
+  <section id="jadwal" class="panel hidden">
+    <div class="bar">
+      <label>Periode
+        <select id="periode"></select>
+      </label>
+      <span id="rentang" class="hint"></span>
+    </div>
+    <div class="wrap"><table id="tabel"></table></div>
+    <div class="bar">
+      <button id="hariIni">Ke hari ini</button>
+      <button id="csv">Ekspor Excel (CSV)</button>
+      <button id="pdf">Cetak / PDF</button>
+    </div>
+    <p class="hint">Ketuk sebuah bagian untuk menandai sudah dibaca.</p>
+  </section>
+
+  <section id="ringkasan" class="panel hidden">
+    <h2>Progres periode ini</h2>
+    <div id="prog"></div>
+  </section>
+</main>
+
+<script>
+window.ODOS_DATA={"8": {"1": ["Al-Fatihah (penuh), Al-Baqarah 1-12", "Al-Baqarah 13-31", "Al-Baqarah 32-56", "Al-Baqarah 57-73", "Al-Baqarah 74-89", "Al-Baqarah 90-104", "Al-Baqarah 105-122", "Al-Baqarah 123-141"], "2": ["Al-Baqarah 142-158", "Al-Baqarah 159-176", "Al-Baqarah 177-187", "Al-Baqarah 188-202", "Al-Baqarah 203-217", "Al-Baqarah 218-230", "Al-Baqarah 231-241", "Al-Baqarah 242-252"], "3": ["Al-Baqarah 253-261", "Al-Baqarah 262-274", "Al-Baqarah 275-284", "Al-Baqarah 285-286, Ali Imran 1-16", "Ali Imran 17-35", "Ali Imran 36-53", "Ali Imran 54-74", "Ali Imran 75-92"], "4": ["Ali Imran 93-112", "Ali Imran 113-133", "Ali Imran 134-151", "Ali Imran 152-166", "Ali Imran 167-183", "Ali Imran 184-200", "An-Nisa 1-12", "An-Nisa 13-23"], "5": ["An-Nisa 24-35", "An-Nisa 36-51", "An-Nisa 52-70", "An-Nisa 71-86", "An-Nisa 87-97", "An-Nisa 98-113", "An-Nisa 114-130", "An-Nisa 131-147"], "6": ["An-Nisa 148-165", "An-Nisa 166-176, Al-Maidah 1-2", "Al-Maidah 3-11", "Al-Maidah 12-22", "Al-Maidah 23-39", "Al-Maidah 40-48", "Al-Maidah 49-66", "Al-Maidah 67-81"], "7": ["Al-Maidah 82-97", "Al-Maidah 98-111", "Al-Maidah 112-120, Al-An'am 1-11", "Al-An'am 12-34", "Al-An'am 35-55", "Al-An'am 56-73", "Al-An'am 74-92", "Al-An'am 93-110"], "8": ["Al-An'am 111-128", "Al-An'am 129-142", "Al-An'am 143-154", "Al-An'am 155-165, Al-A'raf 1-11", "Al-A'raf 12-34", "Al-A'raf 35-51", "Al-A'raf 52-70", "Al-A'raf 71-87"], "9": ["Al-A'raf 88-112", "Al-A'raf 113-137", "Al-A'raf 138-152", "Al-A'raf 153-163", "Al-A'raf 164-183", "Al-A'raf 184-206", "Al-Anfal 1-20", "Al-Anfal 21-40"], "10": ["Al-Anfal 41-57", "Al-Anfal 58-75", "At-Taubah 1-17", "At-Taubah 18-31", "At-Taubah 32-43", "At-Taubah 44-60", "At-Taubah 61-74", "At-Taubah 75-92"], "11": ["At-Taubah 93-108", "At-Taubah 109-121", "At-Taubah 122-129, Yunus 1-10", "Yunus 11-24", "Yunus 25-46", "Yunus 47-70", "Yunus 71-92", "Yunus 93-109, Hud 1-5"], "12": ["Hud 6-24", "Hud 25-45", "Hud 46-66", "Hud 67-88", "Hud 89-113", "Hud 114-123, Yusuf 1-14", "Yusuf 15-33", "Yusuf 34-52"], "13": ["Yusuf 53-75", "Yusuf 76-95", "Yusuf 96-111, Ar-Ra'd 1-3", "Ar-Ra'd 4-18", "Ar-Ra'd 19-37", "Ar-Ra'd 38-43, Ibrahim 1-10", "Ibrahim 11-29", "Ibrahim 30-52"], "14": ["Al-Hijr 1-41", "Al-Hijr 42-90", "Al-Hijr 91-99, An-Nahl 1-22", "An-Nahl 23-42", "An-Nahl 43-69", "An-Nahl 70-87", "An-Nahl 88-106", "An-Nahl 107-128"], "15": ["Al-Isra 1-22", "Al-Isra 23-49", "Al-Isra 50-70", "Al-Isra 71-96", "Al-Isra 97-111, Al-Kahf 1-10", "Al-Kahf 11-27", "Al-Kahf 28-49", "Al-Kahf 50-74"], "16": ["Al-Kahf 75-104", "Al-Kahf 105-110, Maryam 1-25", "Maryam 26-58", "Maryam 59-95", "Maryam 96-98, Thaha 1-42", "Thaha 43-76", "Thaha 77-107", "Thaha 108-135"], "17": ["Al-Anbiya 1-30", "Al-Anbiya 31-57", "Al-Anbiya 58-86", "Al-Anbiya 87-112", "Al-Hajj 1-18", "Al-Hajj 19-38", "Al-Hajj 39-60", "Al-Hajj 61-78"], "18": ["Al-Mu'minun 1-33", "Al-Mu'minun 34-74", "Al-Mu'minun 75-111", "Al-Mu'minun 112-118, An-Nur 1-20", "An-Nur 21-33", "An-Nur 34-53", "An-Nur 54-63", "An-Nur 64, Al-Furqan 1-20"], "19": ["Al-Furqan 21-49", "Al-Furqan 50-77", "Asy-Syu'ara 1-48", "Asy-Syu'ara 49-111", "Asy-Syu'ara 112-171", "Asy-Syu'ara 172-227", "An-Naml 1-28", "An-Naml 29-55"], "20": ["An-Naml 56-83", "An-Naml 84-93, Al-Qashash 1-13", "Al-Qashash 14-31", "Al-Qashash 32-50", "Al-Qashash 51-74", "Al-Qashash 75-88, Al-'Ankabut 1-6", "Al-'Ankabut 7-26", "Al-'Ankabut 27-45"], "21": ["Al-'Ankabut 46-67", "Al-'Ankabut 68-69, Ar-Rum 1-24", "Ar-Rum 25-46", "Ar-Rum 47-60, Luqman 1-11", "Luqman 12-32", "Luqman 33-34, As-Sajdah 1-20", "As-Sajdah 21-30, Al-Ahzab 1-10", "Al-Ahzab 11-30"], "22": ["Al-Ahzab 31-49", "Al-Ahzab 50-62", "Al-Ahzab 63-73, Saba' 1-11", "Saba' 12-31", "Saba' 32-54", "Fathir 1-18", "Fathir 19-41", "Fathir 42-45, Yasin 1-27"], "23": ["Yasin 28-64", "Yasin 65-83, Ash-Shaffat 1-24", "Ash-Shaffat 25-92", "Ash-Shaffat 93-153", "Ash-Shaffat 154-182, Shad 1-23", "Shad 24-61", "Shad 62-88, Az-Zumar 1-7", "Az-Zumar 8-31"], "24": ["Az-Zumar 32-52", "Az-Zumar 53-74", "Az-Zumar 75, Ghafir 1-21", "Ghafir 22-40", "Ghafir 41-62", "Ghafir 63-85", "Fushshilat 1-24", "Fushshilat 25-46"], "25": ["Fushshilat 47-54, Asy-Syura 1-13", "Asy-Syura 14-33", "Asy-Syura 34-53, Az-Zukhruf 1-7", "Az-Zukhruf 8-36", "Az-Zukhruf 37-70", "Az-Zukhruf 71-89, Ad-Dukhan 1-27", "Ad-Dukhan 28-59, Al-Jatsiyah 1-12", "Al-Jatsiyah 13-37"], "26": ["Al-Ahqaf 1-20", "Al-Ahqaf 21-35, Muhammad 1-3", "Muhammad 4-27", "Muhammad 28-38, Al-Fath 1-10", "Al-Fath 11-26", "Al-Fath 27-29, Al-Hujurat 1-12", "Al-Hujurat 13-18, Qaf 1-26", "Qaf 27-45, Adz-Dzariyat 1-30"], "27": ["Adz-Dzariyat 31-60, Ath-Thur 1-21", "Ath-Thur 22-49, An-Najm 1-26", "An-Najm 27-62, Al-Qamar 1-16", "Al-Qamar 17-55, Ar-Rahman 1-16", "Ar-Rahman 17-78, Al-Waqi'ah 1", "Al-Waqi'ah 2-76", "Al-Waqi'ah 77-96, Al-Hadid 1-14", "Al-Hadid 15-29"], "28": ["Al-Mujadilah 1-15", "Al-Mujadilah 16-22, Al-Hasyr 1-9", "Al-Hasyr 10-24, Al-Mumtahanah 1-2", "Al-Mumtahanah 3-13, Ash-Shaff 1-5", "Ash-Shaff 6-14, Al-Jumu'ah (penuh)", "Al-Munafiqun (penuh), At-Taghabun 1-9", "At-Taghabun 10-18, Ath-Thalaq 1-9", "Ath-Thalaq 10-12, At-Tahrim (penuh)"], "29": ["Al-Mulk (penuh), Al-Qalam 1-2", "Al-Qalam 3-52, Al-Haqqah 1-8", "Al-Haqqah 9-52, Al-Ma'arij 1-27", "Al-Ma'arij 28-44, Nuh (penuh)", "Al-Jinn (penuh), Al-Muzzammil 1-11", "Al-Muzzammil 12-20, Al-Muddatstsir 1-47", "Al-Muddatstsir 48-56, Al-Qiyamah (penuh), Al-Insan 1-15", "Al-Insan 16-31, Al-Mursalat (penuh)"], "30": ["An-Naba' (penuh), An-Nazi'at 1-43", "An-Nazi'at 44-46, 'Abasa (penuh), At-Takwir (penuh), Al-Infithar (penuh), Al-Muthaffifin 1", "Al-Muthaffifin 2-36, Al-Insyiqaq (penuh), Al-Buruj 1-11", "Al-Buruj 12-22, Ath-Thariq (penuh), Al-A'la (penuh), Al-Ghasyiyah (penuh), Al-Fajr 1-14", "Al-Fajr 15-30, Al-Balad (penuh), Asy-Syams (penuh), Al-Lail (penuh), Adh-Dhuha 1-3", "Adh-Dhuha 4-11, Al-Insyirah (penuh), At-Tin (penuh), Al-'Alaq (penuh), Al-Qadr (penuh), Al-Bayyinah (penuh), Az-Zalzalah 1", "Az-Zalzalah 2-8, Al-'Adiyat (penuh), Al-Qari'ah (penuh), At-Takatsur (penuh), Al-'Ashr (penuh), Al-Humazah (penuh), Al-Fil (penuh), Quraisy 1-2", "Quraisy 3-4, Al-Ma'un (penuh), Al-Kautsar (penuh), Al-Kafirun (penuh), An-Nashr (penuh), Al-Lahab (penuh), Al-Ikhlas (penuh), Al-Falaq (penuh), An-Nas (penuh)"]}, "10": {"1": ["Al-Fatihah (penuh), Al-Baqarah 1-6", "Al-Baqarah 7-25", "Al-Baqarah 26-40", "Al-Baqarah 41-59", "Al-Baqarah 60-73", "Al-Baqarah 74-85", "Al-Baqarah 86-98", "Al-Baqarah 99-110", "Al-Baqarah 111-125", "Al-Baqarah 126-141"], "2": ["Al-Baqarah 142-153", "Al-Baqarah 154-169", "Al-Baqarah 170-181", "Al-Baqarah 182-190", "Al-Baqarah 191-202", "Al-Baqarah 203-215", "Al-Baqarah 216-224", "Al-Baqarah 225-233", "Al-Baqarah 234-245", "Al-Baqarah 246-252"], "3": ["Al-Baqarah 253-259", "Al-Baqarah 260-269", "Al-Baqarah 270-281", "Al-Baqarah 282-286, Ali Imran 1-2", "Ali Imran 3-16", "Ali Imran 17-29", "Ali Imran 30-46", "Ali Imran 47-62", "Ali Imran 63-77", "Ali Imran 78-92"], "4": ["Ali Imran 93-109", "Ali Imran 110-122", "Ali Imran 123-141", "Ali Imran 142-153", "Ali Imran 154-166", "Ali Imran 167-180", "Ali Imran 181-194", "Ali Imran 195-200, An-Nisa 1-6", "An-Nisa 7-14", "An-Nisa 15-23"], "5": ["An-Nisa 24-33", "An-Nisa 34-44", "An-Nisa 45-59", "An-Nisa 60-74", "An-Nisa 75-86", "An-Nisa 87-94", "An-Nisa 95-105", "An-Nisa 106-121", "An-Nisa 122-134", "An-Nisa 135-147"], "6": ["An-Nisa 148-162", "An-Nisa 163-175", "An-Nisa 176, Al-Maidah 1-5", "Al-Maidah 6-13", "Al-Maidah 14-22", "Al-Maidah 23-35", "Al-Maidah 36-44", "Al-Maidah 45-55", "Al-Maidah 56-68", "Al-Maidah 69-81"], "7": ["Al-Maidah 82-94", "Al-Maidah 95-107", "Al-Maidah 108-118", "Al-Maidah 119-120, Al-An'am 1-16", "Al-An'am 17-34", "Al-An'am 35-51", "Al-An'am 52-68", "Al-An'am 69-81", "Al-An'am 82-94", "Al-An'am 95-110"], "8": ["Al-An'am 111-124", "Al-An'am 125-137", "Al-An'am 138-146", "Al-An'am 147-157", "Al-An'am 158-165, Al-A'raf 1-11", "Al-A'raf 12-30", "Al-A'raf 31-43", "Al-A'raf 44-57", "Al-A'raf 58-73", "Al-A'raf 74-87"], "9": ["Al-A'raf 88-104", "Al-A'raf 105-130", "Al-A'raf 131-143", "Al-A'raf 144-155", "Al-A'raf 156-163", "Al-A'raf 164-178", "Al-A'raf 179-195", "Al-A'raf 196-206, Al-Anfal 1-8", "Al-Anfal 9-25", "Al-Anfal 26-40"], "10": ["Al-Anfal 41-52", "Al-Anfal 53-69", "Al-Anfal 70-75, At-Taubah 1-6", "At-Taubah 7-20", "At-Taubah 21-31", "At-Taubah 32-40", "At-Taubah 41-53", "At-Taubah 54-67", "At-Taubah 68-78", "At-Taubah 79-92"], "11": ["At-Taubah 93-105", "At-Taubah 106-116", "At-Taubah 117-128", "At-Taubah 129, Yunus 1-13", "Yunus 14-24", "Yunus 25-41", "Yunus 42-61", "Yunus 62-78", "Yunus 79-97", "Yunus 98-109, Hud 1-5"], "12": ["Hud 6-19", "Hud 20-37", "Hud 38-53", "Hud 54-71", "Hud 72-88", "Hud 89-108", "Hud 109-123, Yusuf 1-4", "Yusuf 5-22", "Yusuf 23-37", "Yusuf 38-52"], "13": ["Yusuf 53-69", "Yusuf 70-86", "Yusuf 87-103", "Yusuf 104-111, Ar-Ra'd 1-5", "Ar-Ra'd 6-18", "Ar-Ra'd 19-34", "Ar-Ra'd 35-43, Ibrahim 1-5", "Ibrahim 6-18", "Ibrahim 19-33", "Ibrahim 34-52"], "14": ["Al-Hijr 1-31", "Al-Hijr 32-70", "Al-Hijr 71-99, An-Nahl 1-6", "An-Nahl 7-26", "An-Nahl 27-42", "An-Nahl 43-64", "An-Nahl 65-79", "An-Nahl 80-93", "An-Nahl 94-110", "An-Nahl 111-128"], "15": ["Al-Isra 1-17", "Al-Isra 18-38", "Al-Isra 39-58", "Al-Isra 59-75", "Al-Isra 76-96", "Al-Isra 97-111, Al-Kahf 1-4", "Al-Kahf 5-20", "Al-Kahf 21-34", "Al-Kahf 35-53", "Al-Kahf 54-74"], "16": ["Al-Kahf 75-97", "Al-Kahf 98-110, Maryam 1-11", "Maryam 12-38", "Maryam 39-64", "Maryam 65-95", "Maryam 96-98, Thaha 1-37", "Thaha 38-64", "Thaha 65-87", "Thaha 88-113", "Thaha 114-135"], "17": ["Al-Anbiya 1-24", "Al-Anbiya 25-44", "Al-Anbiya 45-72", "Al-Anbiya 73-90", "Al-Anbiya 91-112", "Al-Hajj 1-15", "Al-Hajj 16-30", "Al-Hajj 31-46", "Al-Hajj 47-64", "Al-Hajj 65-78"], "18": ["Al-Mu'minun 1-27", "Al-Mu'minun 28-59", "Al-Mu'minun 60-89", "Al-Mu'minun 90-118", "An-Nur 1-20", "An-Nur 21-31", "An-Nur 32-43", "An-Nur 44-58", "An-Nur 59-64, Al-Furqan 1-2", "Al-Furqan 3-20"], "19": ["Al-Furqan 21-43", "Al-Furqan 44-67", "Al-Furqan 68-77, Asy-Syu'ara 1-19", "Asy-Syu'ara 20-60", "Asy-Syu'ara 61-111", "Asy-Syu'ara 112-159", "Asy-Syu'ara 160-206", "Asy-Syu'ara 207-227, An-Naml 1-13", "An-Naml 14-35", "An-Naml 36-55"], "20": ["An-Naml 56-76", "An-Naml 77-93, Al-Qashash 1-5", "Al-Qashash 6-21", "Al-Qashash 22-35", "Al-Qashash 36-50", "Al-Qashash 51-70", "Al-Qashash 71-84", "Al-Qashash 85-88, Al-'Ankabut 1-14", "Al-'Ankabut 15-30", "Al-'Ankabut 31-45"], "21": ["Al-'Ankabut 46-63", "Al-'Ankabut 64-69, Ar-Rum 1-15", "Ar-Rum 16-32", "Ar-Rum 33-50", "Ar-Rum 51-60, Luqman 1-11", "Luqman 12-28", "Luqman 29-34, As-Sajdah 1-11", "As-Sajdah 12-30", "Al-Ahzab 1-15", "Al-Ahzab 16-30"], "22": ["Al-Ahzab 31-43", "Al-Ahzab 44-54", "Al-Ahzab 55-73", "Saba' 1-14", "Saba' 15-31", "Saba' 32-48", "Saba' 49-54, Fathir 1-11", "Fathir 12-30", "Fathir 31-44", "Fathir 45, Yasin 1-27"], "23": ["Yasin 28-54", "Yasin 55-83", "Ash-Shaffat 1-51", "Ash-Shaffat 52-102", "Ash-Shaffat 103-153", "Ash-Shaffat 154-182, Shad 1-16", "Shad 17-42", "Shad 43-83", "Shad 84-88, Az-Zumar 1-10", "Az-Zumar 11-31"], "24": ["Az-Zumar 32-47", "Az-Zumar 48-67", "Az-Zumar 68-75, Ghafir 1-7", "Ghafir 8-25", "Ghafir 26-40", "Ghafir 41-58", "Ghafir 59-77", "Ghafir 78-85, Fushshilat 1-11", "Fushshilat 12-29", "Fushshilat 30-46"], "25": ["Fushshilat 47-54, Asy-Syura 1-10", "Asy-Syura 11-22", "Asy-Syura 23-45", "Asy-Syura 46-53, Az-Zukhruf 1-12", "Az-Zukhruf 13-36", "Az-Zukhruf 37-63", "Az-Zukhruf 64-89, Ad-Dukhan 1-7", "Ad-Dukhan 8-47", "Ad-Dukhan 48-59, Al-Jatsiyah 1-17", "Al-Jatsiyah 18-37"], "26": ["Al-Ahqaf 1-16", "Al-Ahqaf 17-31", "Al-Ahqaf 32-35, Muhammad 1-14", "Muhammad 15-32", "Muhammad 33-38, Al-Fath 1-10", "Al-Fath 11-24", "Al-Fath 25-29, Al-Hujurat 1-6", "Al-Hujurat 7-18, Qaf 1-2", "Qaf 3-35", "Qaf 36-45, Adz-Dzariyat 1-30"], "27": ["Adz-Dzariyat 31-60, Ath-Thur 1-14", "Ath-Thur 15-49", "An-Najm 1-44", "An-Najm 45-62, Al-Qamar 1-27", "Al-Qamar 28-55, Ar-Rahman 1-16", "Ar-Rahman 17-67", "Ar-Rahman 68-78, Al-Waqi'ah 1-50", "Al-Waqi'ah 51-96, Al-Hadid 1-3", "Al-Hadid 4-18", "Al-Hadid 19-29"], "28": ["Al-Mujadilah 1-11", "Al-Mujadilah 12-22, Al-Hasyr 1-3", "Al-Hasyr 4-16", "Al-Hasyr 17-24, Al-Mumtahanah 1-5", "Al-Mumtahanah 6-13, Ash-Shaff 1-5", "Ash-Shaff 6-14, Al-Jumu'ah 1-8", "Al-Jumu'ah 9-11, Al-Munafiqun (penuh)", "At-Taghabun (penuh)", "Ath-Thalaq (penuh)", "At-Tahrim (penuh)"], "29": ["Al-Mulk 1-26", "Al-Mulk 27-30, Al-Qalam 1-42", "Al-Qalam 43-52, Al-Haqqah 1-34", "Al-Haqqah 35-52, Al-Ma'arij 1-39", "Al-Ma'arij 40-44, Nuh (penuh)", "Al-Jinn (penuh)", "Al-Muzzammil (penuh), Al-Muddatstsir 1-17", "Al-Muddatstsir 18-56, Al-Qiyamah 1-19", "Al-Qiyamah 20-40, Al-Insan 1-25", "Al-Insan 26-31, Al-Mursalat (penuh)"], "30": ["An-Naba' (penuh), An-Nazi'at 1-25", "An-Nazi'at 26-46, 'Abasa (penuh), At-Takwir 1-19", "At-Takwir 20-29, Al-Infithar (penuh), Al-Muthaffifin 1-32", "Al-Muthaffifin 33-36, Al-Insyiqaq (penuh), Al-Buruj (penuh), Ath-Thariq 1-6", "Ath-Thariq 7-17, Al-A'la (penuh), Al-Ghasyiyah (penuh), Al-Fajr 1-14", "Al-Fajr 15-30, Al-Balad (penuh), Asy-Syams (penuh), Al-Lail 1-8", "Al-Lail 9-21, Adh-Dhuha (penuh), Al-Insyirah (penuh), At-Tin (penuh), Al-'Alaq (penuh), Al-Qadr 1-2", "Al-Qadr 3-5, Al-Bayyinah (penuh), Az-Zalzalah (penuh), Al-'Adiyat (penuh), Al-Qari'ah 1-6", "Al-Qari'ah 7-11, At-Takatsur (penuh), Al-'Ashr (penuh), Al-Humazah (penuh), Al-Fil (penuh), Quraisy (penuh), Al-Ma'un 1-5", "Al-Ma'un 6-7, Al-Kautsar (penuh), Al-Kafirun (penuh), An-Nashr (penuh), Al-Lahab (penuh), Al-Ikhlas (penuh), Al-Falaq (penuh), An-Nas (penuh)"]}};
+</script>
+<script>
+(function(){
+'use strict';
+var KEY='odos-pwa-v1';
+var $=function(id){return document.getElementById(id)};
+var state=load();
+
+function load(){
+  try{var s=JSON.parse(localStorage.getItem(KEY));if(s&&s.names)return s}catch(e){}
+  return null;
+}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+function iso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
+function parse(s){var a=s.split('-');return new Date(+a[0],+a[1]-1,+a[2])}
+function addDays(d,n){var x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()+n);return x}
+var BLN=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+function fmt(d){return d.getDate()+' '+BLN[d.getMonth()]+' '+d.getFullYear()}
+function fmtS(d){return d.getDate()+'-'+BLN[d.getMonth()]}
+
+// ---------- tab ----------
+function show(tab){
+  ['atur','jadwal','ringkasan'].forEach(function(t){$(t).classList.toggle('hidden',t!==tab)});
+  document.querySelectorAll('.tab').forEach(function(b){b.classList.toggle('active',b.dataset.tab===tab)});
+  if(tab==='jadwal')renderJadwal();
+  if(tab==='ringkasan')renderRingkasan();
+}
+document.querySelectorAll('.tab').forEach(function(b){b.onclick=function(){
+  if(!state&&b.dataset.tab!=='atur'){alert('Isi pengaturan peserta dulu.');return}
+  show(b.dataset.tab)}});
+
+// ---------- pengaturan ----------
+function namaInputs(n,names){
+  var box=$('namaBox');box.innerHTML='';
+  for(var i=0;i<n;i++){
+    var row=document.createElement('div');row.className='namaRow';
+    var lab=document.createElement('span');lab.textContent=String.fromCharCode(65+i);
+    var inp=document.createElement('input');inp.type='text';inp.placeholder='Nama peserta '+(i+1);
+    inp.value=(names&&names[i])||'';inp.dataset.i=i;
+    row.appendChild(lab);row.appendChild(inp);box.appendChild(row);
+  }
+}
+$('jumlah').onchange=function(){
+  var cur=[].map.call($('namaBox').querySelectorAll('input'),function(x){return x.value});
+  namaInputs(+$('jumlah').value,cur);
+};
+$('simpan').onclick=function(){
+  var n=+$('jumlah').value;
+  var names=[].map.call($('namaBox').querySelectorAll('input'),function(x,i){return x.value.trim()||String.fromCharCode(65+i)}).slice(0,n);
+  if(!$('mulai').value){alert('Isi tanggal mulai.');return}
+  var old=state&&state.n===n?state.done:{};
+  state={n:n,names:names,start:$('mulai').value,done:old||{},periode:1};
+  save();show('jadwal');
+};
+$('reset').onclick=function(){
+  if(confirm('Hapus semua nama dan tanda baca?')){localStorage.removeItem(KEY);state=null;init()}
+};
+
+// ---------- jadwal ----------
+function bagianUntuk(orang,p,juz){ // orang 0..n-1, p 1..n
+  var n=state.n,part=(orang+p-1)%n;
+  return window.ODOS_DATA[String(n)][String(juz)][part];
+}
+function startP(p){return addDays(parse(state.start),30*(p-1))}
+function periodeAktif(){
+  var t=new Date(),s=parse(state.start);
+  var diff=Math.floor((new Date(t.getFullYear(),t.getMonth(),t.getDate())-s)/86400000);
+  var p=Math.floor(diff/30)+1;
+  return Math.min(Math.max(p,1),state.n);
+}
+function renderJadwal(){
+  var sel=$('periode');
+  if(!sel.options.length||sel.options.length!==state.n){
+    sel.innerHTML='';
+    for(var p=1;p<=state.n;p++){var o=document.createElement('option');o.value=p;o.textContent='Periode '+p;sel.appendChild(o)}
+    sel.value=state.periode||periodeAktif();
+  }
+  var p=+sel.value;state.periode=p;save();
+  var s=startP(p),e=addDays(s,29);
+  $('rentang').textContent=fmt(s)+' - '+fmt(e);
+  var h='<tr><th class="sticky">Tgl</th><th>Juz</th>';
+  state.names.forEach(function(nm,i){h+='<th>'+String.fromCharCode(65+i)+'<br>'+esc(nm)+'</th>'});
+  h+='</tr>';
+  var today=iso(new Date());
+  for(var d=1;d<=30;d++){
+    var dt=addDays(s,d-1);
+    h+='<tr id="r'+d+'"'+(iso(dt)===today?' class="today"':'')+'><td class="sticky">'+fmtS(dt)+'</td><td>'+d+'</td>';
+    for(var k=0;k<state.n;k++){
+      var key=p+'|'+d+'|'+k;
+      h+='<td class="bagian'+(state.done[key]?' done':'')+'" data-k="'+key+'">'+esc(bagianUntuk(k,p,d))+'</td>';
+    }
+    h+='</tr>';
+  }
+  $('tabel').innerHTML=h;
+}
+function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+$('periode').onchange=renderJadwal;
+$('tabel').onclick=function(ev){
+  var td=ev.target.closest('td.bagian');if(!td)return;
+  var k=td.dataset.k;
+  if(state.done[k])delete state.done[k];else state.done[k]=1;
+  save();td.classList.toggle('done');
+};
+$('hariIni').onclick=function(){
+  var p=periodeAktif();$('periode').value=p;renderJadwal();
+  var r=document.querySelector('tr.today');
+  if(r)r.scrollIntoView({block:'center'});else alert('Hari ini di luar rentang periode ini.');
+};
+
+// ---------- ringkasan ----------
+function renderRingkasan(){
+  var p=state.periode||1,h='<p class="hint">Periode '+p+': '+fmt(startP(p))+' - '+fmt(addDays(startP(p),29))+'</p>';
+  state.names.forEach(function(nm,k){
+    var c=0;for(var d=1;d<=30;d++)if(state.done[p+'|'+d+'|'+k])c++;
+    h+='<div class="p"><b>'+String.fromCharCode(65+k)+'. '+esc(nm)+'</b> - '+c+' / 30 hari'
+      +'<div class="bar2"><i style="width:'+(c/30*100)+'%"></i></div></div>';
+  });
+  $('prog').innerHTML=h;
+}
+
+// ---------- ekspor ----------
+$('csv').onclick=function(){
+  var p=state.periode,s=startP(p),rows=[];
+  rows.push(['Tgl','Juz'].concat(state.names.map(function(n,i){return String.fromCharCode(65+i)+' - '+n})));
+  for(var d=1;d<=30;d++){
+    var r=[fmtS(addDays(s,d-1)),d];
+    for(var k=0;k<state.n;k++)r.push(bagianUntuk(k,p,d)+(state.done[p+'|'+d+'|'+k]?' [selesai]':''));
+    rows.push(r);
+  }
+  var csv='﻿'+rows.map(function(r){return r.map(function(c){return '"'+String(c).replace(/"/g,'""')+'"'}).join(';')}).join('\r\n');
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download='Jadwal_ODOS_Periode_'+p+'.csv';document.body.appendChild(a);a.click();a.remove();
+};
+$('pdf').onclick=function(){window.print()};
+
+// ---------- mulai ----------
+function init(){
+  var n=state?state.n:8;
+  $('jumlah').value=n;
+  $('mulai').value=state?state.start:iso(new Date());
+  namaInputs(n,state&&state.names);
+  if(state){$('periode').innerHTML='';show('jadwal')}else show('atur');
+}
+init();
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(function(){})}
+})();
+
+</script>
+</body>
+</html>

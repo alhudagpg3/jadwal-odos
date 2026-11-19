@@ -1,0 +1,41 @@
+:root{--biru:#1F4E78;--kuning:#FFF2CC;--hijau:#d9ead3;--abu:#f4f6f8}
+*{box-sizing:border-box}
+body{margin:0;font-family:Calibri,Carlito,"Segoe UI",Arial,sans-serif;background:var(--abu);color:#222;font-size:16px}
+header{background:var(--biru);color:#fff;padding:10px 12px;position:sticky;top:0;z-index:5}
+h1{margin:0 0 6px;font-size:20px}
+nav{display:flex;gap:6px}
+.tab{flex:1;padding:8px;border:0;border-radius:6px;background:#ffffff33;color:#fff;font:inherit}
+.tab.active{background:#fff;color:var(--biru);font-weight:700}
+main{padding:12px;max-width:1100px;margin:auto}
+.hidden{display:none}
+label{display:block;margin:10px 0;font-weight:600}
+select,input[type=text],input[type=date]{width:100%;padding:10px;font:inherit;border:1px solid #bbb;border-radius:6px;margin-top:4px}
+button{font:inherit;padding:10px 14px;border-radius:6px;border:1px solid var(--biru);background:#fff;color:var(--biru)}
+button.primary{background:var(--biru);color:#fff;width:100%;margin-top:10px}
+button.danger{border-color:#b00;color:#b00;margin-top:18px}
+.hint{color:#555;font-size:14px}
+.bar{display:flex;gap:8px;align-items:end;flex-wrap:wrap;margin:8px 0}
+.bar label{margin:0;flex:0 0 auto}
+.wrap{overflow:auto;max-height:68vh;background:#fff;border:1px solid #ccc;border-radius:6px}
+table{border-collapse:collapse;font-size:13px;min-width:100%}
+th,td{border:1px solid #ccc;padding:6px;vertical-align:top}
+th{background:var(--biru);color:#fff;position:sticky;top:0;z-index:2}
+td.sticky,th.sticky{position:sticky;left:0;background:#eef2f6;z-index:1;white-space:nowrap}
+th.sticky{background:var(--biru);z-index:3}
+td.bagian{min-width:150px;cursor:pointer}
+td.done{background:var(--hijau);text-decoration:line-through;color:#555}
+tr.today td.sticky{background:var(--kuning);font-weight:700}
+tr.today td.bagian:not(.done){background:var(--kuning)}
+.namaRow{display:flex;gap:6px;align-items:center}
+.namaRow span{width:24px;font-weight:700}
+.p{background:#fff;border:1px solid #ccc;border-radius:6px;padding:8px;margin:8px 0}
+.bar2{height:10px;background:#ddd;border-radius:5px;overflow:hidden;margin-top:4px}
+.bar2>i{display:block;height:100%;background:var(--biru)}
+@media print{
+  header,.bar,.hint,#atur,#ringkasan{display:none!important}
+  #jadwal{display:block!important}
+  .wrap{max-height:none;overflow:visible;border:0}
+  table{font-size:9px}
+  th{position:static;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  @page{size:A4 landscape;margin:8mm}
+}
