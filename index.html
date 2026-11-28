@@ -153,7 +153,7 @@ function parse(s){var m=/^(\d{4})-(\d{2})-(\d{2})/.exec(String(s));if(m)return n
 function addDays(d,n){var x=new Date(d.getFullYear(),d.getMonth(),d.getDate());x.setDate(x.getDate()+n);return x}
 function fmt(d){return d.getDate()+' '+BLN[d.getMonth()]+' '+d.getFullYear()}
 function fmtS(d){return d.getDate()+'-'+BLN[d.getMonth()]}
-function huruf(i){return String.fromCharCode(65+i)}
+function huruf(i){return String(i+1)}
 function toast(m){var t=$('toast');t.textContent=m;t.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(function(){t.style.display='none'},2600)}
 function grupLokal(kode){for(var i=0;i<L.groups.length;i++)if(L.groups[i].kode===kode)return L.groups[i];return null}
 
